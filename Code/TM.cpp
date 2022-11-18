@@ -190,7 +190,8 @@ TuringMachine::TuringMachine(string filename,bool verbose)
                                 errorReport(illegalChar,lineNum,{"illegalChar in direct:",ch});
                                 return;
                             }
-                    transferFunc[make_pair(list[0],list[1])]=list;
+                    vector<string> v(list.begin()+2,list.end());
+                    transferFunc[make_pair(list[0],list[1])]=v;
                 }
                 ++lineNum;
             }
@@ -245,10 +246,71 @@ void TuringMachine::run(string& input)
 {
     this->input=input;
     checkInput(input);
+    //初始化输入串磁带
+    for(int i=0;i<input.size();++i)
+        tape[make_pair(0,i)]=input[i];
+    //初始化其他磁带
+    for(int i =1;i<numOfTape;++i)
+        tape[make_pair(i,0)]='_';
+    //初始化磁头
+    head = vector<int> (numOfTape);
+    for(int i=0;i<numOfTape;++i)
+        head[i]=0;
+    //初始化边界
+    limit = vector<pair<int,int>>(numOfTape);
+    limit[0] = make_pair(0,input.size());
+    for(int i =1;i<numOfTape;++i)
+        limit[i]=make_pair(0,1);
+    //正式运行
+    curState = startState;
+    step = 0;
+    if(verbose)
+        printCurStep();
+    while(true)
+    {
+        string curTapestr = getTapestr(head);
+        /*auto itr = transferFunc.find(make_pair(curState,curTapestr));
+        if(itr==transferFunc.end())
+            {
+                printResult();
+                return;
+            }*/
+        auto itr =transferFunc.begin();
+        while(itr!=transferFunc.end())
+        {
+            if(itr->first.first!=curState)
+            {
+                ++itr;
+                continue;
+            }
+            if(checkMatch(curTapestr,itr->first.second))
+                break;
+            ++itr;
+        }
+        if(itr==transferFunc.end())
+            {
+                printResult();
+                return;
+            }
+        curState=itr->second[2];
+        wirteAndmove(itr->second);
+        if(verbose)
+            printCurStep();
+    }
 }
 void TuringMachine::printResult()
 {
-
+    string res="";
+    for(int l =limit[0].first;l<limit[0].second;++l)
+        res+=getTapechar(make_pair(0,l));
+    //去除头尾的"_"
+    res.erase(0,res.find_first_not_of("_"));
+    res.erase(res.find_last_not_of("_")+1);
+    if(verbose)
+        cerr<<"Result: ";
+    cerr<<res<<endl;
+    if(verbose)
+        cerr<<endBoundary<<endl;
 }
 
 void TuringMachine::checkInput(string &input)
@@ -264,6 +326,105 @@ void TuringMachine::checkInput(string &input)
     }
     if(verbose)
         cerr<<beginBoundary<<endl;
+}
+
+string TuringMachine::getTapestr(vector<int> index)
+{
+    string result ="";
+    for(int i=0;i<numOfTape;++i)
+    {
+        result += getTapechar(make_pair(i,index[i]));
+    }
+    return result;
+}
+
+char TuringMachine::getTapechar(pair<int,int> index)
+{
+    char result;
+    auto it = tape.find(index);
+    if(it==tape.end())
+       return '_';
+    else
+        return it->second;
+}
+
+void TuringMachine::printCurStep()
+{
+    cerr<<"Step\t: "<<step<<endl;
+    for(int i=0;i<numOfTape;++i)
+    {
+        string sindex="",stape="",shead="";
+        for(int l = limit[i].first;l<limit[i].second;++l)
+            {
+                sindex+=" ";
+                sindex+=to_string(abs(l));
+                stape+=" ";
+                stape+=getTapechar(make_pair(i,l));
+                shead+=" ";
+                if(head[i]==l)
+                    shead+="^";
+                for(int j =1;j<to_string(l).size();++j)
+                    {
+                        stape+=" ";
+                        shead+=" ";
+                    }
+            }
+        cerr<<"Index"<<i<<"\t:"<<sindex<<endl;
+        cerr<<"Tape"<<i<<"\t:"<<stape<<endl;
+        cerr<<"Head"<<i<<"\t:"<<shead<<endl;
+    }
+    cerr<<"State\t: "<<curState<<endl;
+    cerr<<Boundary<<endl;
+}
+
+void TuringMachine::wirteAndmove(vector<string>& tokens)
+{
+    //写磁带
+    for(int i=0;i<numOfTape;++i)
+    {
+        if(tokens[0][i]!='*')
+            tape[make_pair(i,head[i])]=tokens[0][i];
+    }
+    //移动并维护左右边界
+    for(int i=0;i<numOfTape;++i)
+        {
+            switch (tokens[1][i])
+            {
+            case 'l':
+                if(head[i]==limit[i].first)
+                    limit[i].first-=1;
+                if(head[i]==limit[i].second-1&&getTapechar(make_pair(i,head[i]))=='_')
+                    limit[i].second-=1;
+                head[i]-=1;
+                break;
+            case 'r':
+                if(head[i]==limit[i].first&&getTapechar(make_pair(i,head[i]))=='_')
+                    limit[i].first+=1;
+                if(head[i]==limit[i].second-1)
+                    limit[i].second+=1;
+                head[i]+=1;
+                break;
+            case '*':
+                break;
+            default:
+                cerr<<"wrong move of head"<<endl;
+                exit(-1);
+                break;
+            }
+        }
+}
+
+bool TuringMachine::checkMatch(string str1,string str2)
+{
+    if(str1.size()!=str2.size())
+        return false;
+    for(int i=0;i<str1.size();++i)
+        {
+            if(str1[i]==str2[i]||str2[i]=='*')
+                continue;
+            return false;
+        }
+    return true;
 }
 
 unordered_set<string> getSetFromValue(string value,TuringMachine* tm,char type,bool errorFlag,int lineNum)

@@ -6,6 +6,5 @@ int main(int argc, char** argv) {
     bool verbose = parseCommand(argc, argv, filename, input);
     TuringMachine *tm = new TuringMachine(filename,verbose);
     tm -> run(input);
-    tm->printResult();
     return 0;
 }

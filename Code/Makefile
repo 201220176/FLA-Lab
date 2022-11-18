@@ -14,7 +14,7 @@ test:
 	./turing ../Program/test.tm 000111
 
 vtest:
-	./turing -v ../Program/test.tm 000111
+	./turing -v ../Program/test.tm 1001
  
 clean:
 	rm -rf $(obj) $(target)
