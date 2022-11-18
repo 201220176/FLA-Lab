@@ -9,6 +9,12 @@ $(target): $(obj)
  
 %.o: %.cpp $(deps)
 	$(LD) -c $< -o $@
+
+test:
+	./turing ../Program/test.tm 000111
+
+vtest:
+	./turing -v ../Program/test.tm 000111
  
 clean:
 	rm -rf $(obj) $(target)

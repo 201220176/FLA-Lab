@@ -1,6 +1,6 @@
 #include"parser.h"
 
-bool parseCommand(int argc, char** argv, string& file, string& input)
+bool parseCommand(int argc, char** argv, string& filename, string& input)
 {
     int ErrorCode = -1;
     bool verbose = false;
@@ -12,8 +12,8 @@ bool parseCommand(int argc, char** argv, string& file, string& input)
             giveHelp = true;
         else if(!giveHelp&&(curArg=="--verbose"||curArg=="-v"))
             verbose = true;
-        else if(!giveHelp&&file.empty()&&curArg.find(".tm"))
-            file = curArg;
+        else if(!giveHelp&&filename.empty()&&curArg.find(".tm"))
+            filename = curArg;
         else if(!giveHelp&&input.empty())
             input = curArg;
         else if(curArg[0]=='-')

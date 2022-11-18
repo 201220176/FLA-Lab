@@ -6,10 +6,15 @@
 using namespace std;
 
 enum ErrorType{
-    CommandError
+    CommandError,
+    FileOpenError,
+    DefError,
+    illegalChar,
+    UnknownState,
+    TransferFuncError
 };
 
-bool parseCommand(int argc, char** argv, string& file, string& input);
+bool parseCommand(int argc, char** argv, string& filename, string& input);
 
 
 

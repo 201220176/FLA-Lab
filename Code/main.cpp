@@ -1,7 +1,11 @@
 #include"parser.h"
+#include"TM.h"
 
 int main(int argc, char** argv) {
-    string file, input;
-    bool verbose = parseCommand(argc, argv, file, input);
+    string filename, input;
+    bool verbose = parseCommand(argc, argv, filename, input);
+    TuringMachine *tm = new TuringMachine(filename,verbose);
+    tm -> run(input);
+    tm->printResult();
     return 0;
 }
