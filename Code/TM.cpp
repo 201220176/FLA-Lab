@@ -9,7 +9,7 @@ TuringMachine::TuringMachine(string filename,bool verbose)
     int lineNum = 1;
     if(!fin.is_open())
         {
-            errorReport(FileOpenError,lineNum,{"Cannot open file"});
+            errorReport(FileOpenError,-1,{"Cannot open file"});
             return;
         }
     else
@@ -200,34 +200,72 @@ void TuringMachine::errorReport(int errorType,int lineNum,vector<string>message)
 {
     if(verbose)
     {
-        cout<<"Wrong line:"<<lineNum<<" ";
-        for(string s:message)
-            cout<<s;
-        cout<<endl;
+        switch ((errorType))
+        {
+        case FileOpenError:
+            cerr<<"Cannot open file"<<endl;
+            break;
+        case InputError:
+            {
+                int index = stoi(message[0]);
+                cerr<<errorBoundary<<endl
+                        <<"error: '"<<this->input[index]<<"'was not declared in the set of input symbols"<<endl
+                        <<"input: "<<this->input<<endl
+                        <<"       ";
+                for(int i=0;i<index;++i)    cerr<<" ";
+                cerr<<'^'<<endl<<endBoundary<<endl;
+            }
+            break;
+        default:
+            cerr<<errorBoundary<<endl
+                    <<"Wrong line:"<<lineNum<<" ";
+            for(string s:message)
+                cerr<<s;
+            cerr<<endl<<endBoundary<<endl;
+            break;
+        }
     }
     else
     {
         switch ((errorType))
         {
         case FileOpenError:
-            cout<<"Cannot open file"<<endl;
+            cerr<<"Cannot open file"<<endl;
             break;
-        
+        case InputError:
+            cerr<<"illegal input"<<endl;
         default:
-            cout<<"syntax error"<<endl;
+            cerr<<"syntax error"<<endl;
             break;
         }
     }
     exit(errorType);
 }
-void TuringMachine::run(string input)
+void TuringMachine::run(string& input)
 {
-
+    this->input=input;
+    checkInput(input);
 }
 void TuringMachine::printResult()
 {
 
 }
+
+void TuringMachine::checkInput(string &input)
+{
+    if(verbose)
+        cerr<<"Input: "<<input<<endl;
+    for(int i=0;i<input.size();++i)
+    {
+        if(inputChar.find(input.substr(i,1))==inputChar.end())
+            {
+                errorReport(InputError,-1,{to_string(i)});
+            }
+    }
+    if(verbose)
+        cerr<<beginBoundary<<endl;
+}
+
 unordered_set<string> getSetFromValue(string value,TuringMachine* tm,char type,bool errorFlag,int lineNum)
 {
     if(value[0]!='{'||value[value.size()-1]!='}')
@@ -241,6 +279,7 @@ unordered_set<string> getSetFromValue(string value,TuringMachine* tm,char type,b
     while(right!=value.npos)
     {
         string item = value.substr(left,right-left);
+        checkSymbol(item,type,tm,lineNum);
         if(item.size()>1&&(type=='S'||type=='G'))
             {
                 tm->errorReport(illegalChar,lineNum,{"illegalChar:",item});
@@ -256,5 +295,51 @@ unordered_set<string> getSetFromValue(string value,TuringMachine* tm,char type,b
         right=value.find(',',left);
         if(right==value.npos)
             right=value.find('}',left);
+    }
+}
+
+void checkSymbol(string token,char type,TuringMachine *tm,int lineNum)
+{
+    for(char c:token)
+    {
+        switch (type)
+        {
+        case 'Q':
+            if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_')
+                continue;
+            else 
+                {
+                    string ch ="";ch+=c;
+                    tm->errorReport(illegalChar,lineNum,{"illegalChar:",ch});
+                }
+            break;
+        case 'S':
+            {
+                string prohibition = " ,;{}*_";
+                if(c>=32&&c<=126&&prohibition.find(c)==prohibition.npos)
+                    continue;
+                else
+                    {
+                        string ch ="";ch+=c;
+                        tm->errorReport(illegalChar,lineNum,{"illegalChar:",ch});
+                    }
+            }
+            break;
+        case 'G':
+            {
+                string prohibition = " ,;{}*";
+                if(c>=32&&c<=126&&prohibition.find(c)==prohibition.npos)
+                    continue;
+                else
+                    {
+                        string ch ="";ch+=c;
+                        tm->errorReport(illegalChar,lineNum,{"illegalChar:",ch});
+                    }
+            }
+            break;
+        default:
+            return;
+            break;
+        }
     }
 }

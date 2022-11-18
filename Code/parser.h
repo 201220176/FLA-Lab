@@ -11,7 +11,8 @@ enum ErrorType{
     DefError,
     illegalChar,
     UnknownState,
-    TransferFuncError
+    TransferFuncError,
+    InputError
 };
 
 bool parseCommand(int argc, char** argv, string& filename, string& input);
