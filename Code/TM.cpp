@@ -363,6 +363,8 @@ void TuringMachine::printCurStep()
                 shead+=" ";
                 if(head[i]==l)
                     shead+="^";
+                else
+                    shead+=" ";
                 for(int j =1;j<to_string(l).size();++j)
                     {
                         stape+=" ";
