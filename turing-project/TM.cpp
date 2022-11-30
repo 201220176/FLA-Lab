@@ -235,6 +235,7 @@ void TuringMachine::errorReport(int errorType,int lineNum,vector<string>message)
             break;
         case InputError:
             cerr<<"illegal input"<<endl;
+            break;
         default:
             cerr<<"syntax error"<<endl;
             break;
@@ -294,6 +295,7 @@ void TuringMachine::run(string& input)
             }
         curState=itr->second[2];
         wirteAndmove(itr->second);
+        ++step;
         if(verbose)
             printCurStep();
     }
@@ -365,7 +367,7 @@ void TuringMachine::printCurStep()
                     shead+="^";
                 else
                     shead+=" ";
-                for(int j =1;j<to_string(l).size();++j)
+                for(int j =1;j<to_string(abs(l)).size();++j)
                     {
                         stape+=" ";
                         shead+=" ";
@@ -422,7 +424,8 @@ bool TuringMachine::checkMatch(string str1,string str2)
         return false;
     for(int i=0;i<str1.size();++i)
         {
-            if(str1[i]==str2[i]||str2[i]=='*')
+            //通配符不匹配'_'
+            if(str1[i]==str2[i]||(str2[i]=='*'&&str1[i]!='_'))
                 continue;
             return false;
         }

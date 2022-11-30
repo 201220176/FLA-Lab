@@ -29,7 +29,11 @@ bool parseCommand(int argc, char** argv, string& filename, string& input)
                 exit(ErrorCode);
             }
     }
+    if(argc==1)
+        giveHelp=true;
     if(giveHelp)
+    {
         cout<<"usage: turing [-v|--verbose] [-h|--help] <tm> <input>"<<endl;
+    }
     return verbose;
 }

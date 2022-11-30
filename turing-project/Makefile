@@ -11,10 +11,10 @@ $(target): $(obj)
 	$(LD) -c $< -o $@
 
 test:
-	./turing ../Program/test.tm 000111
+	./turing ../Program/case2.tm 1111111111111111111111111
 
 vtest:
-	./turing -v ../Program/test.tm 1001
+	./turing -v ../Program/case2.tm 1111111111111111111111111
  
 clean:
 	rm -rf $(obj) $(target)
